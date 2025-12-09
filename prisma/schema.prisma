@@ -1,0 +1,208 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  ADMIN
+  SERVICE_HEAD
+  ENGINEER
+  SALES
+  COMMERCIAL
+}
+
+enum PointStatus {
+  CREATED
+  ASSIGNED
+  REASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CLOSED
+}
+
+enum ServiceRecordStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+// User Model
+model User {
+  id        String   @id @default(cuid())
+  uid       String   @unique @default(dbgenerated("upper('KMUSER-' || substr(md5(random()::text), 1, 6))"))
+  name      String
+  email     String? @unique
+  phone     String
+  role      UserRole
+  password  String?  @default("default123") // Default password, should be changed on first login
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  fcmToken  String?
+
+  // Relations
+  createdServiceRecords ServiceRecord[] @relation("CreatedBy")
+  assignedPoints        Point[]         @relation("AssignedTo")
+  createdPoints         Point[]         @relation("CreatedBy")
+  reports               Report[]
+  notifications         Notification[]
+
+  @@map("users")
+}
+
+// Customer Model
+model Customer {
+  id      String  @id @default(cuid())
+  uid     String  @unique @default(dbgenerated("upper('KM-' || substr(md5(random()::text), 1, 6))"))
+  name    String
+  phone   String
+  email   String?
+  address String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  serviceRecords ServiceRecord[]
+
+  @@map("customers")
+}
+
+// Machine Model
+model Machine {
+  id                   String  @id @default(cuid())
+  name                 String
+  category             String
+  brand                String
+  warrantyTimeInMonths Int
+  serialNumber         String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  serviceRecords ServiceRecord[]
+
+  @@map("machines")
+}
+
+// Service Record Model
+model ServiceRecord {
+  id               String              @id @default(cuid())
+  customerId       String
+  machineId        String
+  purchaseDate     DateTime
+  warrantyExpiresAt DateTime
+  pendingAmount    Float               @default(0)
+  kpis             Json?               // Store KPIs as JSON
+  status           ServiceRecordStatus @default(ACTIVE)
+  createdById      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  customer  Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  machine   Machine  @relation(fields: [machineId], references: [id], onDelete: Cascade)
+  createdBy User     @relation("CreatedBy", fields: [createdById], references: [id])
+
+  reports       Report[]
+  points        Point[]
+  notifications Notification[]
+
+  @@map("service_records")
+}
+
+// Report Model
+model Report {
+  id              String @id @default(cuid())
+  serviceRecordId String
+  engineerId      String
+  reportData      Json?  // Store report details as JSON
+  scanData        Json?  // Store scanned report data
+  manualUrl       String? // URL to uploaded machine manual
+  eDrawingsUrl    String? // URL to uploaded electrical drawings
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  serviceRecord ServiceRecord @relation(fields: [serviceRecordId], references: [id], onDelete: Cascade)
+  engineer      User          @relation(fields: [engineerId], references: [id])
+
+  @@map("reports")
+}
+
+// Point Model (Open Points/Issues)
+model Point {
+  id              String      @id @default(cuid())
+  serviceRecordId String
+  title           String
+  description     String?
+  status          PointStatus @default(CREATED)
+  priority        String?     @default("MEDIUM") // HIGH, MEDIUM, LOW
+  assignedToId    String?
+  createdById     String
+  dueDate         DateTime?
+  completedAt     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  serviceRecord ServiceRecord @relation(fields: [serviceRecordId], references: [id], onDelete: Cascade)
+  assignedTo    User?         @relation("AssignedTo", fields: [assignedToId], references: [id])
+  createdBy     User          @relation("CreatedBy", fields: [createdById], references: [id])
+
+  @@map("points")
+}
+
+// Notification Model
+model Notification {
+  id              String  @id @default(cuid())
+  serviceRecordId String?
+  userId          String
+  title           String
+  message         String
+  type            String  @default("INFO") // INFO, WARNING, URGENT
+  isRead          Boolean @default(false)
+  metadata        Json?   // Additional data
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  serviceRecord ServiceRecord? @relation(fields: [serviceRecordId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// Spares Quotation Model
+model SparesQuotation {
+  id          String @id @default(cuid())
+  customerName String
+  machineInfo String
+  partDetails Json   // Store spare parts details as JSON
+  status      String @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED
+  quotationAmount Float?
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("spares_quotations")
+}
+
+
