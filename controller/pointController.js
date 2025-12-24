@@ -531,7 +531,7 @@ class PointController {
       const { status, priority, page = 1, limit = 20 } = req.query;
       const skip = (page - 1) * limit;
 
-      const where = { assignedToId: currentUser.id };
+      const where = { assignedToId: currentUser.id , status: { not: 'COMPLETED' } };
       if (status) where.status = status;
       if (priority) where.priority = priority;
 
