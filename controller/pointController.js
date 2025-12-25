@@ -533,7 +533,7 @@ class PointController {
 
       const where = { assignedToId: currentUser.id };
 
-      if (status == 'OPEN') {
+      if (status == 'open') {
         where.OR = [
           { status: { not: 'COMPLETED' } },
           { status: { not : 'CLOSED'} }
