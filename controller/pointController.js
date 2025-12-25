@@ -12,7 +12,7 @@ class PointController {
 
       // Check if current user can manage points
       if (!canManagePoints(currentUser.role)) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           error: 'Access denied',
           message: 'Only Admin, Service Head, or Engineer can create points'
         });
@@ -20,7 +20,7 @@ class PointController {
 
       // Validate required fields
       if (!serviceRecordId || !title) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: 'Missing required fields',
           required: ['serviceRecordId', 'title']
         });
@@ -36,7 +36,7 @@ class PointController {
       });
 
       if (!serviceRecord) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           error: 'Service record not found',
           message: `Service record with ID ${serviceRecordId} not found`
         });
@@ -49,7 +49,7 @@ class PointController {
         });
 
         if (!assignedUser) {
-          return res.status(404).json({ 
+          return res.status(404).json({
             error: 'Assigned user not found',
             message: `User with ID ${assignedToId} not found`
           });
@@ -59,7 +59,7 @@ class PointController {
       // Validate priority
       const validPriorities = ['HIGH', 'MEDIUM', 'LOW'];
       if (priority && !validPriorities.includes(priority)) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: 'Invalid priority',
           validPriorities
         });
@@ -112,7 +112,7 @@ class PointController {
 
     } catch (error) {
       console.error('Error creating point:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to create point',
         message: error.message
       });
@@ -122,14 +122,14 @@ class PointController {
   // Get all points
   async getAllPoints(req, res) {
     try {
-      const { 
-        serviceRecordId, 
-        assignedToId, 
-        createdById, 
-        status, 
+      const {
+        serviceRecordId,
+        assignedToId,
+        createdById,
+        status,
         priority,
-        page = 1, 
-        limit = 20 
+        page = 1,
+        limit = 20
       } = req.query;
       const skip = (page - 1) * limit;
 
@@ -201,7 +201,7 @@ class PointController {
 
     } catch (error) {
       console.error('Error fetching points:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to fetch points',
         message: error.message
       });
@@ -249,7 +249,7 @@ class PointController {
       });
 
       if (!point) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           error: 'Point not found',
           message: `Point with ID ${id} not found`
         });
@@ -262,7 +262,7 @@ class PointController {
 
     } catch (error) {
       console.error('Error fetching point:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to fetch point',
         message: error.message
       });
@@ -291,19 +291,19 @@ class PointController {
       });
 
       if (!existingPoint) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           error: 'Point not found',
           message: `Point with ID ${id} not found`
         });
       }
 
       // Check permissions
-      const canUpdate = canManagePoints(currentUser.role) || 
-                       existingPoint.assignedToId === currentUser.id ||
-                       existingPoint.createdById === currentUser.id;
+      const canUpdate = canManagePoints(currentUser.role) ||
+        existingPoint.assignedToId === currentUser.id ||
+        existingPoint.createdById === currentUser.id;
 
       if (!canUpdate) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           error: 'Access denied',
           message: 'You can only update points assigned to you or created by you'
         });
@@ -316,7 +316,7 @@ class PointController {
         });
 
         if (!assignedUser) {
-          return res.status(404).json({ 
+          return res.status(404).json({
             error: 'Assigned user not found',
             message: `User with ID ${assignedToId} not found`
           });
@@ -326,7 +326,7 @@ class PointController {
       // Validate status
       const validStatuses = ['CREATED', 'ASSIGNED', 'REASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CLOSED'];
       if (status && !validStatuses.includes(status)) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: 'Invalid status',
           validStatuses
         });
@@ -335,7 +335,7 @@ class PointController {
       // Validate priority
       const validPriorities = ['HIGH', 'MEDIUM', 'LOW'];
       if (priority && !validPriorities.includes(priority)) {
-        return res.status(400).json({ 
+        return res.status(400).json({
           error: 'Invalid priority',
           validPriorities
         });
@@ -387,7 +387,7 @@ class PointController {
       if (assignedToId && assignedToId !== existingPoint.assignedToId) {
         const notificationStatus = existingPoint.assignedToId ? 'REASSIGNED' : 'ASSIGNED';
         await notificationService.sendPointAssignmentNotification(
-          { ...point, status: notificationStatus }, 
+          { ...point, status: notificationStatus },
           assignedToId
         );
       }
@@ -399,7 +399,7 @@ class PointController {
 
     } catch (error) {
       console.error('Error updating point:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to update point',
         message: error.message
       });
@@ -418,7 +418,7 @@ class PointController {
       });
 
       if (!existingPoint) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           error: 'Point not found',
           message: `Point with ID ${id} not found`
         });
@@ -426,10 +426,10 @@ class PointController {
 
       // Only admin, service head, or the creator can delete points
       const canDelete = ['ADMIN', 'SERVICE_HEAD'].includes(currentUser.role) ||
-                       existingPoint.createdById === currentUser.id;
+        existingPoint.createdById === currentUser.id;
 
       if (!canDelete) {
-        return res.status(403).json({ 
+        return res.status(403).json({
           error: 'Access denied',
           message: 'Only Admin, Service Head, or the point creator can delete points'
         });
@@ -446,7 +446,7 @@ class PointController {
 
     } catch (error) {
       console.error('Error deleting point:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to delete point',
         message: error.message
       });
@@ -465,7 +465,7 @@ class PointController {
       });
 
       if (!serviceRecord) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           error: 'Service record not found',
           message: `Service record with ID ${serviceRecordId} not found`
         });
@@ -517,7 +517,7 @@ class PointController {
 
     } catch (error) {
       console.error('Error fetching points by service record:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to fetch points',
         message: error.message
       });
@@ -531,8 +531,23 @@ class PointController {
       const { status, priority, page = 1, limit = 20 } = req.query;
       const skip = (page - 1) * limit;
 
-      const where = { assignedToId: currentUser.id , status: { not: 'COMPLETED' } };
-      if (status) where.status = status;
+      const where = { assignedToId: currentUser.id };
+
+      if (status == 'OPEN') {
+        where.OR = [
+          { status: { not: 'COMPLETED' } },
+          { status: { not : 'CLOSED'} }
+        ]
+      }
+
+      if(status == 'completed') {
+        where.OR =[
+          { status: 'COMPLETED' },
+          { status: 'CLOSED'}
+        ]
+      }
+
+
       if (priority) where.priority = priority;
 
       const [points, total] = await Promise.all([
@@ -591,7 +606,7 @@ class PointController {
 
     } catch (error) {
       console.error('Error fetching my points:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to fetch points',
         message: error.message
       });
@@ -614,7 +629,7 @@ class PointController {
       });
 
       if (!serviceRecord) {
-        return res.status(404).json({ 
+        return res.status(404).json({
           error: 'Service record not found',
           message: `Service record with ID ${serviceRecordId} not found`
         });
@@ -662,7 +677,7 @@ class PointController {
 
     } catch (error) {
       console.error('Error checking escalation:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to check escalation',
         message: error.message
       });
@@ -684,11 +699,11 @@ class PointController {
       ] = await Promise.all([
         prisma.point.count(),
         prisma.point.count({ where: { assignedToId: currentUser.id } }),
-        prisma.point.count({ 
-          where: { 
+        prisma.point.count({
+          where: {
             priority: 'HIGH',
             status: { notIn: ['COMPLETED', 'CLOSED'] }
-          } 
+          }
         }),
         prisma.point.count({
           where: {
@@ -720,7 +735,7 @@ class PointController {
 
     } catch (error) {
       console.error('Error fetching points statistics:', error);
-      res.status(500).json({ 
+      res.status(500).json({
         error: 'Failed to fetch points statistics',
         message: error.message
       });
