@@ -535,8 +535,10 @@ class PointController {
 
       if (status == 'open') {
         where.OR = [
-          { status: { not: 'COMPLETED' } },
-          { status: { not : 'CLOSED'} }
+          { status: 'CREATED' },
+          { status: 'ASSIGNED' },
+          { status: 'REASSIGNED' },
+          { status: 'IN_PROGRESS' }
         ]
       }
 
