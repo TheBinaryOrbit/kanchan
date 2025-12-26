@@ -331,9 +331,9 @@ class MachineController {
       const existingMachine = await prisma.machine.findUnique({
         where: { id },
         include: {
-          _count: {
-            select : {
-              serviceRecords: true
+          serviceRecords: {
+            select: {
+              id: true
             }
           }
         }
@@ -346,21 +346,43 @@ class MachineController {
         });
       }
 
-      // Check if machine has service records
-      if (existingMachine._count.serviceRecords > 0) {
-        return res.status(400).json({ 
-          error: 'Cannot delete machine',
-          message: 'Machine has existing service records. Please delete or transfer them first.'
-        });
-      }
+      // Get service record IDs for cascade delete
+      const serviceRecordIds = existingMachine.serviceRecords.map(sr => sr.id);
 
-      // Delete machine
-      await prisma.machine.delete({
-        where: { id }
+      // Use transaction to delete machine and all related data
+      await prisma.$transaction(async (tx) => {
+        if (serviceRecordIds.length > 0) {
+          // Delete points related to service records
+          await tx.point.deleteMany({
+            where: {
+              serviceRecordId: { in: serviceRecordIds }
+            }
+          });
+
+          // Delete reports related to service records
+          await tx.report.deleteMany({
+            where: {
+              serviceRecordId: { in: serviceRecordIds }
+            }
+          });
+
+          // Delete service records
+          await tx.serviceRecord.deleteMany({
+            where: {
+              machineId: id
+            }
+          });
+        }
+
+        // Delete machine
+        await tx.machine.delete({
+          where: { id }
+        });
       });
 
       res.json({
-        message: 'Machine deleted successfully'
+        message: 'Machine and all related service records deleted successfully',
+        deletedServiceRecords: serviceRecordIds.length
       });
 
     } catch (error) {

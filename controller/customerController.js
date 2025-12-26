@@ -272,9 +272,9 @@ class CustomerController {
       const existingCustomer = await prisma.customer.findUnique({
         where: { id },
         include: {
-          _count: {
+          serviceRecords: {
             select: {
-              serviceRecords: true
+              id: true
             }
           }
         }
@@ -287,21 +287,43 @@ class CustomerController {
         });
       }
 
-      // Check if customer has service records
-      if (existingCustomer._count.serviceRecords > 0) {
-        return res.status(400).json({ 
-          error: 'Cannot delete customer',
-          message: 'Customer has existing service records. Please delete or transfer them first.'
-        });
-      }
+      // Get service record IDs for cascade delete
+      const serviceRecordIds = existingCustomer.serviceRecords.map(sr => sr.id);
 
-      // Delete customer
-      await prisma.customer.delete({
-        where: { id }
+      // Use transaction to delete customer and all related data
+      await prisma.$transaction(async (tx) => {
+        if (serviceRecordIds.length > 0) {
+          // Delete points related to service records
+          await tx.point.deleteMany({
+            where: {
+              serviceRecordId: { in: serviceRecordIds }
+            }
+          });
+
+          // Delete reports related to service records
+          await tx.report.deleteMany({
+            where: {
+              serviceRecordId: { in: serviceRecordIds }
+            }
+          });
+
+          // Delete service records
+          await tx.serviceRecord.deleteMany({
+            where: {
+              customerId: id
+            }
+          });
+        }
+
+        // Delete customer
+        await tx.customer.delete({
+          where: { id }
+        });
       });
 
       res.json({
-        message: 'Customer deleted successfully'
+        message: 'Customer and all related service records deleted successfully',
+        deletedServiceRecords: serviceRecordIds.length
       });
 
     } catch (error) {
