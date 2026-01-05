@@ -593,6 +593,7 @@ class UserController {
       // Shared counts
       const totalUsers = await prisma.user.count({ where: { isActive: true } });
       const totalCustomers = await prisma.customer.count();
+      const totalMachines = await prisma.machine.count();
 
       switch (upperRole) {
         case 'ADMIN': {
@@ -607,7 +608,8 @@ class UserController {
             totalUsers,
             activeServices,
             totalCustomers,
-            openIssues
+            openIssues,
+            totalMachines
           });
         }
 
