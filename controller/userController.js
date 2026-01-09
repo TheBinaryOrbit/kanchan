@@ -221,9 +221,13 @@ class UserController {
       const { role, isActive } = req.query;
 
       console.log("Role to be selected  :" , role )
-      const where = {};
+      // By default, return only active users. Allow override via ?isActive=true|false
+      const where = { isActive: true };
+
       if (role) where.role = role;
-      if (isActive !== undefined) where.isActive = isActive === 'true';
+      if (isActive !== undefined) {
+        where.isActive = isActive === 'true';
+      }
 
       const users = await prisma.user.findMany({
         where : where,
@@ -593,6 +597,7 @@ class UserController {
       // Shared counts
       const totalUsers = await prisma.user.count({ where: { isActive: true } });
       const totalCustomers = await prisma.customer.count();
+      const totalMachines = await prisma.machine.count();
 
       switch (upperRole) {
         case 'ADMIN': {
@@ -607,7 +612,8 @@ class UserController {
             totalUsers,
             activeServices,
             totalCustomers,
-            openIssues
+            openIssues,
+	    totalMachines
           });
         }
 
