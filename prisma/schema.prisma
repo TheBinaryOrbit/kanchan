@@ -75,6 +75,7 @@ model Customer {
 
   // Relations
   serviceRecords ServiceRecord[]
+  machine Machine[]
 
   @@map("customers")
 }
@@ -93,6 +94,7 @@ model Machine {
 
   // Relations
   serviceRecords ServiceRecord[]
+  customer Customer[]
 
   @@map("machines")
 }

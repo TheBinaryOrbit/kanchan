@@ -5,25 +5,36 @@ class CustomerController {
   // Create customer
   async createCustomer(req, res) {
     try {
-      const {name, phone, email, address } = req.body;
+      const {name, phone, email, address, machineIds } = req.body;
 
       // Validate required fields
       if (!name || !phone) {
         return res.status(400).json({ 
           error: 'Missing required fields',
-          required: ['uid', 'name', 'phone']
+          required: ['name', 'phone']
         });
       }
 
-      
+      // Prepare customer data
+      const customerData = {
+        name,
+        phone,
+        email,
+        address
+      };
+
+      // If machineIds are provided, connect them to the customer
+      if (machineIds && Array.isArray(machineIds) && machineIds.length > 0) {
+        customerData.machine = {
+          connect: machineIds.map(id => ({ id }))
+        };
+      }
 
       // Create customer
       const customer = await prisma.customer.create({
-        data: {
-          name,
-          phone,
-          email,
-          address
+        data: customerData,
+        include: {
+          machine: true
         }
       });
 
@@ -222,7 +233,7 @@ class CustomerController {
   async updateCustomer(req, res) {
     try {
       const { id } = req.params;
-      const { name, phone, email, address } = req.body;
+      const { name, phone, email, address, machineIds } = req.body;
 
       // Check if customer exists
       const existingCustomer = await prisma.customer.findUnique({
@@ -243,10 +254,28 @@ class CustomerController {
       if (email !== undefined) updateData.email = email;
       if (address !== undefined) updateData.address = address;
 
+      // Handle machine associations if provided
+      if (machineIds !== undefined) {
+        if (Array.isArray(machineIds) && machineIds.length > 0) {
+          // Replace all machine associations with the new list
+          updateData.machine = {
+            set: machineIds.map(id => ({ id }))
+          };
+        } else {
+          // If empty array or null, disconnect all machines
+          updateData.machine = {
+            set: []
+          };
+        }
+      }
+
       // Update customer
       const customer = await prisma.customer.update({
         where: { id },
-        data: updateData
+        data: updateData,
+        include: {
+          machine: true
+        }
       });
 
       res.json({

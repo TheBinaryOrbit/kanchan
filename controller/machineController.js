@@ -68,12 +68,21 @@ class MachineController {
   // Get all machines
   async getAllMachines(req, res) {
     try {
-      const { category, brand, search, page = 1, limit = 20 } = req.query;
+      const { category, brand, search, customerId, page = 1, limit = 20 } = req.query;
       const skip = (page - 1) * limit;
 
       const where = {};
       if (category) where.category = { contains: category, mode: 'insensitive' };
       if (brand) where.brand = { contains: brand, mode: 'insensitive' };
+      
+      // Filter by customerId if provided
+      if (customerId) {
+        where.customer = {
+          some: {
+            id: customerId
+          }
+        };
+      }
       
       if (search) {
         where.OR = [
