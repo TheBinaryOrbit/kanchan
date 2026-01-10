@@ -142,6 +142,8 @@ class CustomerController {
         }
       });
 
+      console.log('Fetched customer:', customer);
+
       if (!customer) {
         return res.status(404).json({ 
           error: 'Customer not found',
@@ -171,6 +173,7 @@ class CustomerController {
       const customer = await prisma.customer.findUnique({
         where: { uid },
         include: {
+          machine: true,
           serviceRecords: {
             include: {
               machine: true,
