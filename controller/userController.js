@@ -612,7 +612,8 @@ class UserController {
             totalUsers,
             activeServices,
             totalCustomers,
-            openIssues
+            openIssues,
+            totalMachines
           });
         }
 
