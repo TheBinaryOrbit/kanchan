@@ -121,6 +121,7 @@ class CustomerController {
       const customer = await prisma.customer.findUnique({
         where: { id },
         include: {
+          machine: true,
           serviceRecords: {
             include: {
               machine: true,
