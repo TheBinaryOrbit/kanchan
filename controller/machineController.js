@@ -8,12 +8,20 @@ class MachineController {
       const { name, category, brand, warrantyTimeInMonths, serialNumber } = req.body;
 
       // Validate required fields
-      if (!name || !category || !brand || !warrantyTimeInMonths) {
+      if (!name || !category || !brand) {
         return res.status(400).json({ 
           error: 'Missing required fields',
-          required: ['name', 'category', 'brand', 'warrantyTimeInMonths']
+          required: ['name', 'category', 'brand']
         });
       }
+
+      if(warrantyTimeInMonths < 0 ){
+        return res.status(400).json({ 
+          error: 'Invalid warranty time',
+          message: 'Warranty time cannot be negative'
+        });
+      }
+
 
       // Validate warranty time
       if (warrantyTimeInMonths < 0 || warrantyTimeInMonths > 120) {
