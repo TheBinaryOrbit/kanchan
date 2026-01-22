@@ -102,6 +102,7 @@ class PointController {
 
       // Send assignment notification if point is assigned
       if (assignedToId) {
+        console.log('Sending point assignment notification');
         await notificationService.sendPointAssignmentNotification(point, assignedToId);
       }
 
