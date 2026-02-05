@@ -17,13 +17,14 @@ const prisma = require('../config/database');
 //  * - Every 6 hours: '0 */6 * * *'
 //  * - Every hour: '0 * * * *'
 //  * - Every Monday at 9 AM: '0 9 * * 1'
+//  * - Twice daily (6 AM and 9 AM): '0 6,9 * * *'
 //  * - Twice daily (9 AM and 5 PM): '0 9,17 * * *'
 //  * 
 //  * Usage: node scripts/scheduledOpenPointsNotifier.js
 
 
 // Configuration
-const SCHEDULE = process.env.OPEN_POINTS_CRON_SCHEDULE || '0 9 * * *'; // Default: Daily at 9 AM
+const SCHEDULE = process.env.OPEN_POINTS_CRON_SCHEDULE || '0 6,9 * * *'; // Default: Twice daily at 6 AM and 9 AM
 const TIMEZONE = process.env.CRON_TIMEZONE || 'Asia/Kolkata';
 
 // Fetch admins helper
