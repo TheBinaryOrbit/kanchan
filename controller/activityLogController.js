@@ -15,7 +15,7 @@ class ActivityLogController {
         });
       }
 
-      const activityLog = await prisma.activityLog.create({
+      const activityLog =  await prisma.activityLog.create({
         data: {
           userId: currentUser.id,
           action,
