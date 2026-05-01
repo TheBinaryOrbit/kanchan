@@ -12,6 +12,7 @@ const reportRoutes = require('./router/reportRoutes');
 const pointRoutes = require('./router/pointRoutes');
 const notificationRoutes = require('./router/notificationRoutes');
 const sparesQuotationRoutes = require('./router/sparesQuotationRoutes');
+const activityLogRoutes = require('./router/activityLogRoutes');
 
 // Load environment variables
 dotenv.config();
@@ -37,6 +38,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/points', pointRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/spares-quotations', sparesQuotationRoutes);
+app.use('/api/activity-logs', activityLogRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

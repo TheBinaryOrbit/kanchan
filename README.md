@@ -248,6 +248,10 @@ http://localhost:3000/api
 - `DELETE /points/:id` - Delete point
 - `POST /points/escalation/:serviceRecordId` - Check escalation
 
+#### 🧾 Activity Logs
+- `POST /activity-logs` - Create activity log for the authenticated user
+- `GET /activity-logs?userId=&actionType=` - Get activity logs (Admin only, supports filtering by `userId` and `actionType`)
+
 #### 🔔 Notifications
 - `GET /notifications` - Get user notifications
 - `GET /notifications/unread-count` - Get unread count

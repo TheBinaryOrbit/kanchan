@@ -57,6 +57,7 @@ model User {
   createdPoints         Point[]         @relation("CreatedBy")
   reports               Report[]
   notifications         Notification[]
+  activityLogs          ActivityLog[]
 
   @@map("users")
 }
@@ -208,3 +209,24 @@ model SparesQuotation {
 }
 
 
+model ActivityLog {
+  id              String   @id @default(cuid())
+  userId          String
+  action          String
+  description     String?
+
+
+  actionType      ActivityType @default(SYSTEM) 
+ 
+  createdAt       DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activity_logs")
+}
+
+enum ActivityType {
+  SYSTEM
+  USER
+}
