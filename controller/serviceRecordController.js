@@ -1,6 +1,7 @@
 const prisma = require('../config/database');
 const notificationService = require('../config/notificationService');
 const { canCreateServiceRecord } = require('../config/auth');
+const { createSystemActivityLog } = require('../config/activityLog');
 
 class ServiceRecordController {
 
@@ -86,6 +87,12 @@ class ServiceRecordController {
       if (serviceRecord.pendingAmount > 0) {
         await notificationService.sendPendingPaymentNotification(serviceRecord);
       }
+
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'SERVICE_RECORD_CREATED',
+        description: `Created service record ${serviceRecord.id}`
+      });
 
       res.status(201).json({
         message: 'Service record created successfully',
@@ -321,6 +328,12 @@ class ServiceRecordController {
         await notificationService.sendPendingPaymentNotification(serviceRecord);
       }
 
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'SERVICE_RECORD_UPDATED',
+        description: `Updated service record ${serviceRecord.id}`
+      });
+
       res.json({
         message: 'Service record updated successfully',
         serviceRecord
@@ -384,6 +397,12 @@ class ServiceRecordController {
       // Delete service record
       await prisma.serviceRecord.delete({
         where: { id }
+      });
+
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'SERVICE_RECORD_DELETED',
+        description: `Deleted service record ${id}`
       });
 
       res.json({

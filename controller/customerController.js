@@ -1,4 +1,5 @@
 const prisma = require('../config/database');
+const { createSystemActivityLog } = require('../config/activityLog');
 
 class CustomerController {
 
@@ -36,6 +37,12 @@ class CustomerController {
         include: {
           machine: true
         }
+      });
+
+      await createSystemActivityLog({
+        userId: req.user.id,
+        action: 'CUSTOMER_CREATED',
+        description: `Created customer ${customer.uid} (${customer.name})`
       });
 
       res.status(201).json({
@@ -282,6 +289,12 @@ class CustomerController {
         }
       });
 
+      await createSystemActivityLog({
+        userId: req.user.id,
+        action: 'CUSTOMER_UPDATED',
+        description: `Updated customer ${customer.uid} (${customer.name})`
+      });
+
       res.json({
         message: 'Customer updated successfully',
         customer
@@ -352,6 +365,12 @@ class CustomerController {
         await tx.customer.delete({
           where: { id }
         });
+      });
+
+      await createSystemActivityLog({
+        userId: req.user.id,
+        action: 'CUSTOMER_DELETED',
+        description: `Deleted customer ${existingCustomer.uid} (${existingCustomer.name})`
       });
 
       res.json({

@@ -1,4 +1,5 @@
 const prisma = require('../config/database');
+const { createSystemActivityLog } = require('../config/activityLog');
 
 class MachineController {
 
@@ -57,6 +58,12 @@ class MachineController {
           warrantyTimeInMonths: parseInt(warrantyTimeInMonths),
           serialNumber
         }
+      });
+
+      await createSystemActivityLog({
+        userId: req.user.id,
+        action: 'MACHINE_CREATED',
+        description: `Created machine ${machine.name} (${machine.brand})`
       });
 
       res.status(201).json({
@@ -325,6 +332,12 @@ class MachineController {
         data: updateData
       });
 
+      await createSystemActivityLog({
+        userId: req.user.id,
+        action: 'MACHINE_UPDATED',
+        description: `Updated machine ${machine.name} (${machine.brand})`
+      });
+
       res.json({
         message: 'Machine updated successfully',
         machine
@@ -395,6 +408,12 @@ class MachineController {
         await tx.machine.delete({
           where: { id }
         });
+      });
+
+      await createSystemActivityLog({
+        userId: req.user.id,
+        action: 'MACHINE_DELETED',
+        description: `Deleted machine ${existingMachine.name} (${existingMachine.brand})`
       });
 
       res.json({

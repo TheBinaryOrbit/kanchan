@@ -1,6 +1,7 @@
 const prisma = require('../config/database');
 const notificationService = require('../config/notificationService');
 const { canUpdateReport } = require('../config/auth');
+const { createSystemActivityLog } = require('../config/activityLog');
 
 class ReportController {
 
@@ -71,6 +72,12 @@ class ReportController {
 
       // Send notification to Management, Service Head, Sales, and Commercial (Step 5)
       await notificationService.sendReportSubmissionNotification(serviceRecord, reportData);
+
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'REPORT_CREATED',
+        description: `Created report ${report.id} for service record ${serviceRecordId}`
+      });
 
       res.status(201).json({
         message: 'Report created successfully',
@@ -265,6 +272,12 @@ class ReportController {
         },
       });
 
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'REPORT_ASSET_UPLOADED',
+        description: `Uploaded ${type} for report ${id}`
+      });
+
       return res.json({
         message: `${type === 'manual' ? 'Manual' : 'E-drawing'} uploaded and attached successfully`,
         fileUrl,
@@ -356,6 +369,12 @@ class ReportController {
         reportData || existingReport.reportData
       );
 
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'REPORT_UPDATED',
+        description: `Updated report ${id}`
+      });
+
       res.json({
         message: 'Report updated successfully',
         report
@@ -406,6 +425,12 @@ class ReportController {
       // Delete report
       await prisma.report.delete({
         where: { id }
+      });
+
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'REPORT_DELETED',
+        description: `Deleted report ${id}`
       });
 
       res.json({
@@ -561,6 +586,12 @@ class ReportController {
       // Here you would typically upload to cloud storage (AWS S3, Google Cloud, etc.)
       // For now, we return the local static URL that is served by Express
       const fileUrl = `/uploads/${folder}/${req.file.filename}`;
+
+      await createSystemActivityLog({
+        userId: req.user.id,
+        action: 'FILE_UPLOADED',
+        description: `Uploaded ${type} file ${req.file.originalname}`
+      });
 
       res.json({
         message: 'File uploaded successfully',

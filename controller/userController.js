@@ -1,6 +1,7 @@
 const prisma = require('../config/database');
 const bcrypt = require('bcrypt');
 const { canCreateUser } = require('../config/auth');
+const { createSystemActivityLog } = require('../config/activityLog');
 
 class UserController {
 
@@ -109,6 +110,12 @@ class UserController {
 
       const user = await prisma.user.update({ where: { id: currentUser.id }, data: { fcmToken }, select: { id: true, uid: true, name: true, email: true, fcmToken: true } });
 
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'USER_FCM_TOKEN_UPDATED',
+        description: `Updated FCM token for user ${currentUser.id}`
+      });
+
       res.json({ message: 'FCM token updated', user });
     } catch (error) {
       console.error('Error updating fcmToken:', error);
@@ -190,6 +197,12 @@ class UserController {
           isActive: true,
           createdAt: true
         }
+      });
+
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'USER_CREATED',
+        description: `Created user ${user.uid} (${user.name})`
       });
 
       res.status(201).json({
@@ -374,6 +387,12 @@ class UserController {
         }
       });
 
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'USER_UPDATED',
+        description: `Updated user ${user.uid} (${user.name})`
+      });
+
       res.json({
         message: 'User updated successfully',
         user
@@ -432,6 +451,12 @@ class UserController {
           name: true,
           isActive: true
         }
+      });
+
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'USER_DELETED',
+        description: `Deactivated user ${user.uid} (${user.name})`
       });
 
       res.json({

@@ -1,5 +1,6 @@
 const prisma = require('../config/database');
 const notificationService = require('../config/notificationService');
+const { createSystemActivityLog } = require('../config/activityLog');
 
 class NotificationController {
 
@@ -99,6 +100,12 @@ class NotificationController {
         data: { isRead: true }
       });
 
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'NOTIFICATION_MARKED_READ',
+        description: `Marked notification ${id} as read`
+      });
+
       res.json({
         message: 'Notification marked as read',
         notification: updatedNotification
@@ -124,6 +131,12 @@ class NotificationController {
           isRead: false
         },
         data: { isRead: true }
+      });
+
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'NOTIFICATIONS_MARKED_READ',
+        description: `Marked ${result.count} notifications as read`
       });
 
       res.json({
@@ -166,6 +179,12 @@ class NotificationController {
         where: { id }
       });
 
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'NOTIFICATION_DELETED',
+        description: `Deleted notification ${id}`
+      });
+
       res.json({
         message: 'Notification deleted successfully'
       });
@@ -189,6 +208,12 @@ class NotificationController {
         where: {
           userId: currentUser.id
         }
+      });
+
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'NOTIFICATIONS_CLEARED',
+        description: `Cleared ${result.count} notifications`
       });
 
 
@@ -341,6 +366,12 @@ class NotificationController {
         notifications = notifications.concat(roleNotifications);
       }
 
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'CUSTOM_NOTIFICATION_SENT',
+        description: `Sent custom notification: ${title}`
+      });
+
       res.json({
         message: 'Custom notifications sent successfully',
         count: notifications.length,
@@ -444,6 +475,12 @@ class NotificationController {
           createdAt: { lt: cutoffDate },
           isRead: true
         }
+      });
+
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'OLD_NOTIFICATIONS_DELETED',
+        description: `Deleted ${result.count} old notifications older than ${cutoffDate.toISOString()}`
       });
 
       res.json({

@@ -1,6 +1,7 @@
 const prisma = require('../config/database');
 const notificationService = require('../config/notificationService');
 const { canManagePoints } = require('../config/auth');
+const { createSystemActivityLog } = require('../config/activityLog');
 
 class PointController {
 
@@ -105,6 +106,12 @@ class PointController {
         console.log('Sending point assignment notification');
         await notificationService.sendPointAssignmentNotification(point, assignedToId);
       }
+
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'POINT_CREATED',
+        description: `Created point ${point.id} for service record ${serviceRecordId}`
+      });
 
       res.status(201).json({
         message: 'Point created successfully',
@@ -393,6 +400,12 @@ class PointController {
         );
       }
 
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'POINT_UPDATED',
+        description: `Updated point ${point.id}`
+      });
+
       res.json({
         message: 'Point updated successfully',
         point
@@ -439,6 +452,12 @@ class PointController {
       // Delete point
       await prisma.point.delete({
         where: { id }
+      });
+
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'POINT_DELETED',
+        description: `Deleted point ${existingPoint.id}`
       });
 
       res.json({

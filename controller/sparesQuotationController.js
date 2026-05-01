@@ -1,4 +1,5 @@
 const prisma = require('../config/database');
+const { createSystemActivityLog } = require('../config/activityLog');
 
 class SparesQuotationController {
 
@@ -32,6 +33,12 @@ class SparesQuotationController {
           quotationAmount: quotationAmount ? parseFloat(quotationAmount) : null,
           notes
         }
+      });
+
+      await createSystemActivityLog({
+        userId: req.user.id,
+        action: 'SPARES_QUOTATION_CREATED',
+        description: `Created spares quotation ${sparesQuotation.id}`
       });
 
       res.status(201).json({
@@ -168,6 +175,12 @@ class SparesQuotationController {
         data: updateData
       });
 
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'SPARES_QUOTATION_UPDATED',
+        description: `Updated spares quotation ${quotation.id}`
+      });
+
       res.json({
         message: 'Spares quotation updated successfully',
         quotation
@@ -211,6 +224,12 @@ class SparesQuotationController {
       // Delete quotation
       await prisma.sparesQuotation.delete({
         where: { id }
+      });
+
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'SPARES_QUOTATION_DELETED',
+        description: `Deleted spares quotation ${id}`
       });
 
       res.json({
@@ -393,6 +412,12 @@ class SparesQuotationController {
         data: updateData
       });
 
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'SPARES_QUOTATION_APPROVED',
+        description: `Approved spares quotation ${quotation.id}`
+      });
+
       res.json({
         message: 'Spares quotation approved successfully',
         quotation
@@ -444,6 +469,12 @@ class SparesQuotationController {
       const quotation = await prisma.sparesQuotation.update({
         where: { id },
         data: updateData
+      });
+
+      await createSystemActivityLog({
+        userId: currentUser.id,
+        action: 'SPARES_QUOTATION_REJECTED',
+        description: `Rejected spares quotation ${quotation.id}`
       });
 
       res.json({
